@@ -1,0 +1,10 @@
+applications:
+- path: target/JavaCloudantApp.war
+  memory: 512M
+  instances: 1
+  domain: minsky.mybluemix.net
+  name: pradeeps-test-app
+  host: pradeeps-test-app
+  disk_quota: 1024M
+  services:
+  - pradeeps-test-app-cloudantNoSQLDB
