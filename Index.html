@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+ <HEAD>
+  <TITLE>TableLess Form</TITLE>
+  <META name="Author" Content="Bit Repository">
+  <META name="Keywords" Content="form, divs">
+  <META name="Description" Content="A CSS Tableless Form Design">
+
+<link rel="stylesheet" type="text/css" href="style.css" />
+<link rel="stylesheet" type="text/css" href="./css/jquery-ui.css" />
+<script type="text/javascript" src="./js/thirdparty/jquery.min.js"></script>
+<script type="text/javascript" src="./js/thirdparty/angular.min.js"></script>
+<script type="text/javascript" src="./config/config.js"></script>
+<script type="text/javascript" src="./js/thirdparty/jquery-ui.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $('input[type="radio"]').click(function(){
+        var inputValue = $(this).attr("value");
+        var targetBox = $("." + inputValue);
+        $(".box").not(targetBox).hide();
+        $(targetBox).show();
+    });
+
+$(function() {
+$( "#datepickerStart" ).datepicker({ dateFormat: 'yy-mm-dd' });
+});
+$(function() {
+$( "#datepickerEnd" ).datepicker({ dateFormat: 'yy-mm-dd' });
+});
+});
+
+</script>
+
+
+<script type="text/javascript">
+var app = angular.module('agentDashboardApp', []);
+
+
+
+	app.controller('agentDashboardcontroller', function($scope, $http) {
+		$scope.dashBoarDatas = [];
+
+		$scope.dashBoarForm = {
+			conversationId : "",
+			startDate : "",
+			endDate : "",
+			user : "",
+			intent : "",
+			agent:"",
+			sentiment:""
+		};
+		
+		$scope.filterDatas={
+		users : [],
+		intents :[],
+		sentiments:[],
+		agents:[]
+		}
+
+		 $scope.IsVisible = false;
+		
+		
+		var url_getAllData=getValueByKey('getAllURL', AppUrl,'DashBoardByConvId');
+		var url_filterResult=getValueByKey('url_filterResult', AppUrl,'DashBoardByConvId');
+		var url_ForFilters=getValueByKey('url_ForFilters', AppUrl,'DashBoardByConvId');
+
+		$scope.searchByConversationId = function (){
+		$http({
+				method : 'GET',
+				url :url_getAllData+'/'+$scope.dashboardForm.conversationId
+			}).then(function successCallback(response) {
+				$scope.dashBoarDatas = response.data;
+				alert("Result "+angular.toJson($scope.dashBoarDatas));
+			}, function errorCallback(response) {
+				console.log(response.statusText);
+			});
+		}
+
+
+		$scope.searchByFilter = function() {
+		alert("Posting Date"+angular.toJson($scope.dashBoarForm)+" On "+url_filterResult);
+			$http({
+				method : 'POST',
+				url : url_filterResult,
+				data : angular.toJson($scope.dashBoarForm),
+				headers : {
+					'Content-Type' : 'application/json'
+				}
+			}).then(function successCallback(response) {
+				$scope.dashBoarDatas = response.data;
+				alert("Result "+angular.toJson($scope.dashBoarDatas));
+			}, function errorCallback(response) {
+				console.log(response.statusText);
+			})
+			  	
+		    }
+			
+
+			$scope.searchForFilter = function() {
+		//alert("Posting Date"+angular.toJson($scope.dashBoarForm)+" On "+url_ForFilters);
+			$http({
+				method : 'POST',
+				url : url_ForFilters,
+				data : angular.toJson($scope.dashBoarForm),
+				headers : {
+					'Content-Type' : 'application/json'
+				}
+			}).then(function successCallback(response) {
+				$scope.filterDatas = response.data;
+				//alert("Result "+angular.toJson($scope.filterDatas));
+			}, function errorCallback(response) {
+				console.log(response.statusText);
+			})
+			  	
+		    }
+		
+		
+	});
+</script>
+
+
+</HEAD>
+
+<body ng-app="agentDashboardApp" ng-controller="agentDashboardcontroller">
+ <center>
+
+			<fieldset><legend>Slect Option</legend>
+			<div class="a"><div class="l">By Conversation Id</div><input type="radio" name="filter" value="byconversationid" >
+								  &nbsp;&nbsp;&nbsp;By Using Filter<input type="radio" name="filter" value="byfilter">
+
+			</div>
+			</fieldset>
+
+</center>
+
+
+<left>
+<div class="m byconversationid box" >
+		<fieldset><legend>Search By Conversation Id</legend>
+			<div class="a"><div class="l">Conversation ID</div><div class="r"><INPUT type="text" name="conversationId" 
+			ng-model="dashboardForm.conversationId"
+			></div>
+			<div class="r"><INPUT type="submit" value="Search" ng-click="searchByConversationId()"></div></div>
+		</fieldset>
+
+</div> 
+
+<div class="m byfilter box">
+	<form name="register" >
+		<fieldset><legend>Apply Filters</legend>
+			<div class="a">
+				<div class="l">Start Date <input id="datepickerStart" ng-model="dashBoarForm.startDate"></div>
+				<div class="r">End Date <input id="datepickerEnd" ng-model="dashBoarForm.endDate" ng-change="searchForFilter()"></div>
+			</div>
+			<div class="a">
+				<div class="l">Users <select name="" ng-model="dashBoarForm.user">
+					<option value={{user}} ng-repeat="user in filterDatas.users">{{user}}</option>
+				</select>
+				
+				</div>
+				<div class="r">Intents<select name="" ng-model="dashBoarForm.intent">
+					<option value={{intent}} ng-repeat="intent in filterDatas.intents">{{intent}}</option>
+				</select> </div>
+			</div>
+			<div class="a">
+				<div class="l">Agents	<select name="" ng-model="dashBoarForm.agent" >
+						<option value={{agent}} ng-repeat="agent in filterDatas.agents">{{agent}}</option>
+				</select></div>
+				<div class="r">Sentiment<select name="" ng-model="dashBoarForm.sentiment">
+					<option value={{sentiment}} ng-repeat="sentiment in filterDatas.sentiments">{{sentiment}}</option>
+				</select></div>
+			</div>
+			
+			<div class="a"><div class="l">&nbsp;</div><div class="r"><INPUT class="button" type="submit" name="submit" value="Search" ng-click="searchByFilter()"></div></div>
+			
+		</fieldset>
+
+</div> 
+
+
+<left>
+
+
+</form>
+<div>
+	<table class="table table-bordered" style="width: 800px;table-layout:fixed;" border="1">
+			<tr>
+				<th>Conv ID</th>
+				<th>Start Time</th>
+				<th>End Time</th>
+				<th>Duration</th>
+				<th>Agent transfer</th>
+				<th>Chanel</th>
+				<th style="width:50%;word-wrap:break-word;">Intent Confidance</th>
+				<!--<th>Intents</th>				
+				<th>Intent Confidance</th>
+				<th>Intent Confidance</th>-->
+			</tr>
+			<tr ng-repeat="dashboardData in dashBoarDatas" >
+				<td style="width:10%;word-wrap:break-word;">
+				<a  href={{ dashboardData.conversationId }}> {{ dashboardData.conversationId }}</a></td>
+				<td style="width:30%;word-wrap:break-word;">{{ dashboardData.startTime  | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+				<td style="width:30%;word-wrap:break-word;">{{ dashboardData.endTime | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+				<td style="width:10%;word-wrap:break-word;">{{ dashboardData.duration }}</td>
+				<td style="width:10%;word-wrap:break-word;">{{ dashboardData.agentTransfer }}</td>
+				<td style="width:10%;word-wrap:break-word;">{{ dashboardData.channel }}</td>
+				<!--<td style="width:10%;word-wrap:break-word;">{{ dashboardData.intents }}</td>
+				<td style="width:10%;word-wrap:break-word;">{{ dashboardData.intentconfidence }}</td>-->
+				<td style="width:50%;word-wrap:break-word;">
+					<div ng-repeat="n in dashboardData.lstIntentConfidence track by $index">
+						 {{n}} <br>
+					</div>
+					
+				</td>
+				</td>
+			</tr>
+		</table>
+</div>
+
+ </body>
+</HTML>
